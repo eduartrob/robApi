@@ -2,6 +2,7 @@ import { Router } from 'express';
 import mongoose from 'mongoose';
 
 import { UserController } from '../controllers/userController';
+import { verifyToken } from '../middlewares/authMiddleware';
 
 const userController = new UserController();
 const userRouter = Router();
@@ -120,6 +121,25 @@ userRouter.delete('/:id', async (req, res):Promise<void> => {
         }
     }
 })
+
+userRouter.post('/validate-token', async (req, res): Promise<void> => {
+  try {
+    const { userId } = verifyToken(req);
+    const user = await userController.getUserById(userId);
+    if (user) {
+      res.status(200).json({ message: 'token-valid' });
+    }
+  } catch (error: any) {
+    console.error('Error validating token:', error);
+    if (error.message === 'no-token') {
+      res.status(401).json({ message: 'no-token' });
+    } else if (error.message === 'invalid-token') {
+      res.status(401).json({ message: 'token-expired' });
+    } else {
+      res.status(500).json({ message: 'internal-error' });
+    }
+  }
+});
 
 
 export default userRouter;

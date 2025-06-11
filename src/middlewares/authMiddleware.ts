@@ -7,10 +7,10 @@ export function verifyToken(req: Request): { userId: string } {
     throw new Error('no-token');
   }
 
-  const token = authHeader.split(' ')[1]; // "Bearer TOKEN_AQUI"
+  const token = authHeader.split(' ')[1];
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string };
-    return payload;
+    const payload = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
+    return { userId: payload.id };
   } catch (err) {
     throw new Error('invalid-token');
   }

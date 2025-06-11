@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const mongoose_1 = __importDefault(require("mongoose"));
 const userController_1 = require("../controllers/userController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
 const userController = new userController_1.UserController();
 const userRouter = (0, express_1.Router)();
 userRouter.get('/all', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -138,6 +139,27 @@ userRouter.delete('/:id', (req, res) => __awaiter(void 0, void 0, void 0, functi
         else {
             res.status(500).json({ message: "Internal server error", error });
             return;
+        }
+    }
+}));
+userRouter.post('/validate-token', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { userId } = (0, authMiddleware_1.verifyToken)(req);
+        const user = yield userController.getUserById(userId);
+        if (user) {
+            res.status(200).json({ message: 'token-valid' });
+        }
+    }
+    catch (error) {
+        console.error('Error validating token:', error);
+        if (error.message === 'no-token') {
+            res.status(401).json({ message: 'no-token' });
+        }
+        else if (error.message === 'invalid-token') {
+            res.status(401).json({ message: 'token-expired' });
+        }
+        else {
+            res.status(500).json({ message: 'internal-error' });
         }
     }
 }));
