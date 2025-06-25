@@ -1,0 +1,36 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Coverage reports
+coverage/
+
+# Optional: Insomnia/Postman configs (si no quieres subirlos)
+*.json # revisa si tus configs están aquí y decide si quieres ignorarlas
+
+# Optional: dotenv backups
+.env.local
+.env.backup
