@@ -1,14 +1,12 @@
-# Directorio de dependencias de Node.js
+# .gitignore
+
+# Node
 node_modules/
-
-# Directorio de salida de compilación
-dist/
-
-# Archivos de variables de entorno
 .env
+dist/
+logs
+*.log
 
-# Otros archivos comunes que se deben ignorar en proyectos Node.js
-npm-debug.log*
-yarn-debug.log*
-.DS_Store # Para usuarios de macOS
-.vscode/ # Para usuarios de VS Code
+# OS y editores
+.DS_Store
+.vscode/
