@@ -1,8 +1,8 @@
 # Directorio de dependencias de Node.js
-/node_modules
+node_modules/
 
 # Directorio de salida de compilación
-/dist
+dist/
 
 # Archivos de variables de entorno
 .env
