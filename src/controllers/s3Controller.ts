@@ -1,9 +1,9 @@
 import { uploadIcon, uploadScreenshot, uploadApk, generatePresignedUrl } from "../services/fileService";
 import { UserFile } from "../models/userFileModel";
+type MulterFile = Express.Multer.File;
 
 export class S3Controller {
-
-  async uploadIcon(file: Express.Multer.File, userId: string) {
+  async uploadIcon(file: MulterFile, userId: string) {
     if (!file) {
       throw new Error("file-required");
     }
@@ -28,7 +28,7 @@ export class S3Controller {
     };
   }
 
-  async uploadScreenshot(file: Express.Multer.File, userId: string) {
+  async uploadScreenshot(file: MulterFile, userId: string) {
     if (!file) {
       throw new Error("file-required");
     }
@@ -53,7 +53,7 @@ export class S3Controller {
     };
   } 
 
-  async uploadApk(file: Express.Multer.File, userId: string) {
+  async uploadApk(file: MulterFile, userId: string) {
     if (!file) {
       throw new Error("file-required");
     }
@@ -77,7 +77,6 @@ export class S3Controller {
       },
     };
   }
-
 
   
    async listUserFiles(userId: string) {
