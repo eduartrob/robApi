@@ -1,36 +1,14 @@
-# Node modules
+# Directorio de dependencias de Node.js
 node_modules/
 
-# Build output
+# Directorio de salida de compilación
 dist/
-build/
 
-# Environment variables
+# Archivos de variables de entorno
 .env
-.env.*
 
-# Logs
-logs
-*.log
+# Otros archivos comunes que se deben ignorar en proyectos Node.js
 npm-debug.log*
-
-# OS-specific
-.DS_Store
-Thumbs.db
-
-# IDEs
-.vscode/
-.idea/
-
-# TypeScript cache
-*.tsbuildinfo
-
-# Coverage reports
-coverage/
-
-# Optional: Insomnia/Postman configs (si no quieres subirlos)
-*.json # revisa si tus configs están aquí y decide si quieres ignorarlas
-
-# Optional: dotenv backups
-.env.local
-.env.backup
+yarn-debug.log*
+.DS_Store # Para usuarios de macOS
+.vscode/ # Para usuarios de VS Code
