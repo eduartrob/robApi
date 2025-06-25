@@ -1,5 +1,8 @@
 import * as authService from '../services/authService'
 import { UserDocument, User } from '../models/userModel'
+import { createVerificationCode, validateVerificationCode } from '../services/verificationService'
+import { sendResetCodeEmail } from '../services/emailService'
+import mongoose from 'mongoose';
 
 export class UserController {
     async getUsers() {
@@ -19,6 +22,28 @@ export class UserController {
         }
         return user;
     }
+    async getUserByUsername(email: string, password: string): Promise<string> {
+        const user = await User.findOne({ email }).exec();
+        if (!user || !(await authService.comparePassword(password, user.password))) {
+            throw new Error('invalid-credentials');
+        }
+        const token = authService.generateToken({ id: user._id, email: user.email });
+        return token;
+    }
+    async getUserByEmail(email: string): Promise<UserDocument | null> {
+        const user = await User.findOne({ email }).exec();
+        if (!user) {
+            throw new Error('error-get-user');
+        }
+        return user;
+    }
+
+
+
+
+
+
+
 
     async createUser(data:{name: string, email: string, password: string, phone: string}): Promise<string> {
         const hashPassword = await authService.hashPassword(data.password);
@@ -28,14 +53,7 @@ export class UserController {
         return token;
     }
 
-    async getUserByUsername(email: string, password: string): Promise<string> {
-        const user = await User.findOne({ email }).exec();
-        if (!user || !(await authService.comparePassword(password, user.password))) {
-            throw new Error('invalid-credentials');
-        }
-        const token = authService.generateToken({ id: user._id, email: user.email });
-        return token;
-    }
+    
 
     async updateUser(id: string, data: { name?: string, email?: string, password?: string, phone?: string }): Promise<UserDocument | null> {
         const user = await User.findByIdAndUpdate(id, data, { new: true }).exec();
@@ -52,5 +70,29 @@ export class UserController {
         }
         await User.findByIdAndDelete(id).exec();
         return { message: 'User deleted successfully' };
+    }
+
+
+
+
+
+
+
+
+
+
+    async requestPasswordReset(userId: mongoose.Types.ObjectId, email: string): Promise<number> {
+        const code = await createVerificationCode(userId);
+        await sendResetCodeEmail(email, code.toString());
+        return code;
+    }
+    async verifyResetCode(codeVerification: number): Promise<{ userId: string }> {
+        const result = await validateVerificationCode(codeVerification);
+        console.log("Verification result:", result);
+        if (!result) {
+            throw new Error('invalid-code');
+        }
+
+        return { userId: result.userId.toString() };
     }
 }

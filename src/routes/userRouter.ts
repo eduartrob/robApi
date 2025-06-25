@@ -167,4 +167,77 @@ userRouter.post('/logout', async (req, res): Promise<void> => {
 });
 
 
+
+
+
+userRouter.post('/forgot', async (req, res): Promise<void> => {
+  const { email } = req.body;
+    if (!email) {
+        res.status(406).json({ message: "required fields" });
+        return;
+    }
+    try {
+        const user = await userController.getUserByEmail(email);
+        if(user){
+            await userController.requestPasswordReset(user._id as mongoose.Types.ObjectId, user.email);
+            res.status(200).json({ message: "continue-reset", validation: true});
+        }
+    }
+    catch (error: any) {
+        if (error.message === 'error-get-user') {
+            res.status(404).json({ message: "user-not-found" });
+            return;
+        } else {
+            console.error("Error in forgot password:", error);
+            res.status(500).json({ message: "Internal server error", error: error.message });
+        }
+    }
+});
+
+userRouter.post('/verify-code', async (req, res): Promise<void> => {
+  const { codeVerification } = req.body;
+  if (!codeVerification) {
+    res.status(406).json({ message: "required fields" });
+    return;
+  }
+  try {
+    const isValid = await userController.verifyResetCode(codeVerification);
+    if (isValid) {
+      res.status(200).json({ message: "code-valid", validation: true });
+    }
+  } catch (error: any) {
+    if (error.message === 'invalid-code') {
+      res.status(400).json({ message: "invalid-code" });
+    } else {
+      console.error("Error in verify code:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  }
+});
+
+userRouter.post('/reset-password', async (req, res): Promise<void> => {
+    const { codeVerification, newPassword } = req.body;
+    if (!codeVerification || !newPassword) {
+        res.status(406).json({ message: "required fields" });
+        return;
+    } 
+    try {
+        const resetInfo = await userController.verifyResetCode(codeVerification);
+        if(resetInfo){
+            await userController.updateUser(resetInfo.userId, newPassword);
+            res.status(200).json({ message: "password-reset-success" });
+        }
+    } catch (error: any) {
+        if (error.message === 'user-not-found') {
+            res.status(404).json({ message: "user-not-found" });
+        } else if (error.message === 'invalid-code') {
+            res.status(400).json({ message: "invalid-code" });
+        } else {
+            console.error("Error in reset password:", error);
+            res.status(500).json({ message: "Internal server error", error: error.message });
+        }
+    }
+}); 
+
+
 export default userRouter;
