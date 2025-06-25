@@ -20,10 +20,12 @@ export class UserController {
         return user;
     }
 
-    async createUser(data:{name: string, email: string, password: string, phone: string}): Promise<UserDocument> {
+    async createUser(data:{name: string, email: string, password: string, phone: string}): Promise<string> {
         const hashPassword = await authService.hashPassword(data.password);
         const newUser = new User({ ...data, password: hashPassword });
-        return await newUser.save();
+        const savedUser = await newUser.save(); // Aquí guardas el usuario
+        const token = authService.generateToken({ id: savedUser._id, email: savedUser.email });
+        return token;
     }
 
     async getUserByUsername(email: string, password: string): Promise<string> {

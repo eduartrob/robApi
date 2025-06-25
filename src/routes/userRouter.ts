@@ -2,7 +2,8 @@ import { Router } from 'express';
 import mongoose from 'mongoose';
 
 import { UserController } from '../controllers/userController';
-import { verifyToken } from '../middlewares/authMiddleware';
+import { verifyToken, extractToken } from '../middlewares/authMiddleware';
+import { addTokenToBlacklist } from '../utils/tokenBlackList';
 
 const userController = new UserController();
 const userRouter = Router();
@@ -44,17 +45,18 @@ userRouter.post('/sign-up', async (req, res):Promise<void> => {
     }
     try {
         const existUser = await userController.getUserByName(name, email, phone);
-        if (!existUser) {
-            const newUser = await userController.createUser({ name, email, password, phone });
-            res.status(201).json(newUser);
+        if (existUser) {
+            res.status(409).json({ error: 'User with provided name, email, or phone already exists' });
+            return;
         }
-    } catch (error: any) {
-        if (error.message === 'get-user') {
-            res.status(409).json({ error: 'name-email-phone already exists' });
-        } else {
-            res.status(500).json({ message: "Internal server error", error });
-        }
-    }
+        const token = await userController.createUser({ name, email, password, phone });
+
+        res.setHeader("Authorization", `Bearer ${token}`);
+        res.status(201).json({ message: "User created successfully" });
+    }  catch (error: any) {
+        console.error("Error in sign-up:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+  }
 });
 userRouter.post('/sign-in', async (req, res):Promise<void> => {
     const { email, password } = req.body;
@@ -65,7 +67,8 @@ userRouter.post('/sign-in', async (req, res):Promise<void> => {
     try {
         const userData = await userController.getUserByUsername(email, password);
         if (userData) {
-            res.status(200).json({ token: userData });
+            res.setHeader("Authorization", `Bearer ${userData}`);
+            res.status(200).json({ message: "Login successful" });
             return;
         }
     } catch (error: any) {
@@ -138,6 +141,28 @@ userRouter.post('/validate-token', async (req, res): Promise<void> => {
     } else {
       res.status(500).json({ message: 'internal-error' });
     }
+  }
+});
+
+userRouter.post('/logout', async (req, res): Promise<void> => {
+  try {    
+    const token = extractToken(req);
+    const payload: any = verifyToken(req);
+
+    let exp = payload.exp;
+    if (!exp && token) {
+      const decoded: any = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      exp = decoded.exp;
+    }
+    if(token){
+        await addTokenToBlacklist(token, new Date(exp * 1000));
+        res.status(200).json({ message: 'logout-successful' });
+        return
+    }
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ message: 'internal-error' });
+    return;
   }
 });
 
